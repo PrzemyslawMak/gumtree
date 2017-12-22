@@ -18,9 +18,8 @@ class SearchListing:
     A gumtree search result set containing GTItem objects
     """
 
-    def __init__(self, category, query="", location=""):
+    def __init__(self, category="pokoje-do-wynajecia", location="warszawa"):
         self.category = category
-        self.query = query    
         self.location = location
 
 
@@ -36,7 +35,7 @@ class SearchListing:
         Performs the search against gumtree
         """
 
-        request = requests.get("http://www.gumtree.com/search?q=%s&search_location=%s&category=%s" % (self.query, self.location, self.category), headers=REQUEST_HEADERS)
+        request = requests.get("https://www.gumtree.pl/s-%s/%s/v1c9000l3200008p1?sort=dt&order=desc" % (self.category, self.location), headers=REQUEST_HEADERS)
 
 
         if request.status_code == 200:
@@ -60,7 +59,7 @@ class SearchListing:
             return listing_results
         else:
             # TODO: Add error handling
-            print "Server returned code %s" % request.status_code
+            print ("Server returned code: " + request.status_code)
             return []
 
 
@@ -158,5 +157,5 @@ class GTItem:
             return
         else:
             # TODO: Add error handling
-            print "Server returned code %s for %s" % (request.status_code, url)
+            print ("Server returned code: " + request.status_code + " for " + url)
             return []
