@@ -34,35 +34,54 @@ class SearchListing:
         """
         Performs the search against gumtree
         """
-
+        r = "https://www.gumtree.pl/s-%s/%s/v1c9000l3200008p1?sort=dt&order=desc" % (self.category, self.location)
+        print (r)
         request = requests.get("https://www.gumtree.pl/s-%s/%s/v1c9000l3200008p1?sort=dt&order=desc" % (self.category, self.location), headers=REQUEST_HEADERS)
 
 
         if request.status_code == 200:
             # Got a valid response
 
-            listing_results = []
+            listingResult = []
 
             souped = BeautifulSoup(request.text, "html5lib")
-            for listings_wrapper in souped.find_all("ul", class_="ad-listings"):
-                for listing in listings_wrapper.find_all("li", class_="offer-sale"):
-                    title = listing.find("a", class_="description").get("title")
-                    item_instance = GTItem(title=title)
-                    item_instance.url = listing.find("a", class_="description").get("href")
-                    item_instance.price = listing.find("span", class_="price").string
-                    item_instance.summary = listing.find("div", class_="ad-description").find("span").string
-                    item_instance.location =  listing.find("span", class_="location").string
-                    item_instance.thumbnail = listing.find("img", class_="thumbnail").get("src")
-                    item_instance.adref = listing.find("div", class_="ad-save").get("data-ad-id")
-
-                    listing_results.append(item_instance)
-            return listing_results
+            for listings_wrapper in souped.find_all("li", class_="result pictures"):
+                title = listings_wrapper.find("a", class_="href-link").string
+                url = "https://www.gumtree.pl" + listings_wrapper.find(class_="href-link").get("href")
+                price = listings_wrapper.find("span", class_="amount").string
+                description = listings_wrapper.find(class_="description hidden").string
+                creationDate = listings_wrapper.find(class_="creation-date").find_all("span")[1].string
+                category = listings_wrapper.find(class_="category-location").find("span").string
+                print(title)
+                searchResultItem = GTRoomItemMain(creationDate, title, category, url, price, description)
+                listingResult.append(searchResultItem)
+            return listingResult
         else:
             # TODO: Add error handling
             print ("Server returned code: " + request.status_code)
             return []
 
+class SearchAd:
+    def __init__(self, href):
+        self.href = href
 
+    def parsAd(self):
+        request = requests.get(self.href)
+        if request.status_code == 200:
+            souped = BeautifulSoup(request.text, "html5lib")
+            print(souped)
+
+class GTRoomItemMain:
+    """
+    Gumtree renting room item. Data that has been obtaind from the main page.
+    """
+    def __init__(self, date, title, category, url, price, description):
+        self.date =date
+        self.title = title
+        self.category =category
+        self.url = url
+        self.price = price
+        self.description = description
 
 class GTItem:
     """
